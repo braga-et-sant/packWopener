@@ -1,8 +1,6 @@
 import random
 
 import requests
-import json
-import pprint
 
 common = []
 short = []
@@ -15,28 +13,31 @@ secret = []
 ghost = []
 starlight = []
 coreSets = ["Legend of Blue Eyes White Dragon", "Metal Raiders", "Spell Ruler", "Pharaoh's Servant",
-        "Labyrinth of Nightmare", "Legacy of Darkness", "Pharaonic Guardian", "Magician's Force",
-        "Dark Crisis", "Invasion of Chaos", "Ancient Sanctuary", "Soul of the Duelist",
-        "Rise of Destiny", "Flaming Eternity", "The Lost Millennium", "Cybernetic Revolution",
-        "Elemental Energy", "Shadow of Infinity", "Enemy of Justice", "Power of the Duelist",
-        "Cyberdark Impact", "Strike of Neos", "Force of the Breaker", "Tactical Evolution",
-        "Gladiator's Assault", "Phantom Darkness", "Light of Destruction", "The Duelist Genesis",
-        "Crossroads of Chaos", "Crimson Crisis", "Raging Battle", "Ancient Prophecy",
-        "Stardust Overdrive", "Absolute Powerforce", "The Shining Darkness", "Duelist Revolution",
-        "Storm of Ragnarok", "Extreme Victory", "Generation Force", "Photon Shockwave",
-        "Order of Chaos", "Galactic Overlord", "Return of the Duelist", "Abyss Rising",
-        "Cosmo Blazer", "Lord of the Tachyon Galaxy", "Judgment of the Light", "Shadow Specters",
-        "Legacy of the Valiant", "Primal Origin", "Duelist Alliance", "The New Challengers",
-        "Secrets of Eternity", "Crossed Souls", "Clash of Rebellions", "Dimension of Chaos",
-        "Breakers of Shadow", "Shining Victories", "The Dark Illusion", "Invasion: Vengeance",
-        "Raging Tempest", "Maximum Crisis", "Code of the Duelist", "Circuit Break",
-        "Extreme Force", "Flames of Destruction", "Cybernetic Horizon", "Soul Fusion",
-        "Savage Strike", "Dark Neostorm", "Rising Rampage", "Chaos Impact",
-        "Ignition Assault", "Eternity Code", "Rise of the Duelist", "Phantom Rage",
-        "Blazing Vortex", "Lightning Overdrive", "Dawn of Majesty", "Burst of Destiny",
-        "Battle of Chaos"
+            "Labyrinth of Nightmare", "Legacy of Darkness", "Pharaonic Guardian", "Magician's Force",
+            "Dark Crisis", "Invasion of Chaos", "Ancient Sanctuary", "Soul of the Duelist",
+            "Rise of Destiny", "Flaming Eternity", "The Lost Millennium", "Cybernetic Revolution",
+            "Elemental Energy", "Shadow of Infinity", "Enemy of Justice", "Power of the Duelist",
+            "Cyberdark Impact", "Strike of Neos", "Force of the Breaker", "Tactical Evolution",
+            "Gladiator's Assault", "Phantom Darkness", "Light of Destruction", "The Duelist Genesis",
+            "Crossroads of Chaos", "Crimson Crisis", "Raging Battle", "Ancient Prophecy",
+            "Stardust Overdrive", "Absolute Powerforce", "The Shining Darkness", "Duelist Revolution",
+            "Storm of Ragnarok", "Extreme Victory", "Generation Force", "Photon Shockwave",
+            "Order of Chaos", "Galactic Overlord", "Return of the Duelist", "Abyss Rising",
+            "Cosmo Blazer", "Lord of the Tachyon Galaxy", "Judgment of the Light", "Shadow Specters",
+            "Legacy of the Valiant", "Primal Origin", "Duelist Alliance", "The New Challengers",
+            "Secrets of Eternity", "Crossed Souls", "Clash of Rebellions", "Dimension of Chaos",
+            "Breakers of Shadow", "Shining Victories", "The Dark Illusion", "Invasion: Vengeance",
+            "Raging Tempest", "Maximum Crisis", "Code of the Duelist", "Circuit Break",
+            "Extreme Force", "Flames of Destruction", "Cybernetic Horizon", "Soul Fusion",
+            "Savage Strike", "Dark Neostorm", "Rising Rampage", "Chaos Impact",
+            "Ignition Assault", "Eternity Code", "Rise of the Duelist", "Phantom Rage",
+            "Blazing Vortex", "Lightning Overdrive", "Dawn of Majesty", "Burst of Destiny",
+            "Battle of Chaos"
 
             ]
+
+reprintSets = ["Dark Beginning 1", "Dark Beginning 2", "Dark Revelation Volume 1",
+               "Dark Revelation Volume 2", "Dark Revelation Volume 3"]
 
 setupDone = False
 
@@ -47,10 +48,9 @@ def randCard(pack):
     return pack[random.randint(-1, len(pack) - 1)]
 
 
-def setup(packName, packN, boxRatio, cardlist):
-
+def setup(packName, packN, boxRatio):
     hasSshort = False
-    superRate = 1
+    superRate = 0
     ultraRate = 0
     secretRate = 0
     hasUltimate = False
@@ -58,8 +58,8 @@ def setup(packName, packN, boxRatio, cardlist):
     hasGhost = False
     gHolo = False
     hasStarlight = False
-    noRare = False
     packlist = []
+    reprint = False
 
     base_url = "https://db.ygoprodeck.com/api/v7/cardinfo.php"
     site = "?cardset=" + packName
@@ -78,44 +78,52 @@ def setup(packName, packN, boxRatio, cardlist):
     print("\n\n")
 
     data = response_list["data"]
-
+    sequence = []
     if packName in coreSets:
-        cNum = 9
-        hasFoilLast = True
-        hasRare = True
-        if packName in coreSets[coreSets.index("Legend of Blue Eyes White Dragon"):coreSets.index("Soul of the Duelist")]:
+        sequence = ["C", "C", "C", "C", "C", "C", "C", "R", "F"]
+        if packName in coreSets[
+                       coreSets.index("Legend of Blue Eyes White Dragon"):coreSets.index("Light of Destruction")]:
+            sequence = ["C", "C", "C", "C", "C", "C", "C", "RF", "C"]
+        else:
+            sequence = ["C", "C", "C", "C", "C", "C", "C", "R", "F"]
+
+        if packName in coreSets[
+                       coreSets.index("Legend of Blue Eyes White Dragon"):coreSets.index("Soul of the Duelist")]:
             superRate = 6
             ultraRate = 12
             secretRate = 31
-            if packName in coreSets[coreSets.index("Legend of Blue Eyes White Dragon"):coreSets.index("Legacy of Darkness")]:
+            if packName in coreSets[
+                           coreSets.index("Legend of Blue Eyes White Dragon"):coreSets.index("Legacy of Darkness")]:
                 hasSshort = True
                 print("This pack has super short prints")
-        if packName in coreSets[coreSets.index("Soul of the Duelist"):coreSets.index("Tactical Evolution")]:
+        elif packName in coreSets[coreSets.index("Soul of the Duelist"):coreSets.index("Tactical Evolution")]:
             superRate = 6
             ultraRate = 24
+            secretRate = 31
             hasUltimate = True
             print("This pack has 1:24 Ultras")
             print("This pack has Ultimates")
             if packName in coreSets[coreSets.index("Soul of the Duelist"):coreSets.index("Strike of Neos")]:
                 hasSecret = False
                 print("This pack has no Secret Rares")
-        if packName in coreSets[coreSets.index("Tactical Evolution"):coreSets.index("Breakers of Shadow")]:
-            hasGhost = True
+        elif packName in coreSets[coreSets.index("Tactical Evolution"):coreSets.index("Breakers of Shadow")]:
             superRate = 5
+            ultraRate = 12
+            secretRate = 31
             hasUltimate = True
-            print("This pak has Ghost Rares")
+            hasGhost = True
+            print("This pack has Ghost Rares")
             print("This pack has 1:5 Supers")
             print("This pack has Ultimates")
             if packName in coreSets[coreSets.index("The Shining Darkness"):coreSets.index("Breakers of Shadow")]:
                 secretRate = 23
                 print("This pack has 1:23 Secrets")
-        if packName in coreSets[coreSets.index("Breakers of Shadow"):]:
+        elif packName in coreSets[coreSets.index("Breakers of Shadow"):]:
             gHolo = True
             ultraRate = 6
             secretRate = 12
-            ultra6 = True
-            secret12 = True
-            print("This pak has guaranteed Holos every pack")
+            sequence[8] = "SF"
+            print("This pack has guaranteed Holos every pack")
             print("This pack has 1:6 Ultras")
             print("This pack has 1:12 Secrets")
             if packName in coreSets[coreSets.index("Rising Rampage"):]:
@@ -123,19 +131,112 @@ def setup(packName, packN, boxRatio, cardlist):
                 hasStarlight = True
                 if packName in coreSets[coreSets.index("Eternity Code"):]:
                     print("This pack has no Rare cards")
-                    hasRare = False
+                    sequence[8] = "C"
+    elif packName in reprintSets:
+        sequence = ["CM", "CM", "CM", "CM", "CM", "CM", "CS", "CS", "CS", "CT", "CT", "CT"]
+        reprint = True
+    localSetup(data, packName)
 
+    printInfoSetup()
 
+    if (boxRatio):
 
+        superOk = False
+        ultraOk = False
+        secretOk = False
+
+        boxModSuper = 0
+        boxModUltra = 0
+        boxModSecret = 0
+        superMod = random.randint(0, 10)
+        if (superMod == 0):
+            boxModSuper += 1
+        elif (superMod == 9):
+            boxModSuper -= 1
+
+        ultraMod = random.randint(0, 10)
+        if (ultraMod == 0):
+            boxModUltra += 1
+        elif (ultraMod == 9):
+            boxModUltra -= 1
+
+        secretMod = random.randint(0, 10)
+        if (secretMod == 0):
+            boxModSecret += 1
+        elif (secretMod == 9):
+            boxModSecret -= 1
+
+        while (not superOk or not ultraOk or not secretOk):
+            cardlist = []
+            packlist = []
+            for i in range(0, packN):
+                packlist.append(openPack(hasSshort, ultraRate, superRate, secretRate, hasUltimate, hasSecret,
+                                         hasGhost, hasStarlight, sequence))
+            for pack in packlist:
+                for card in pack:
+                    cardlist.append(card)
+            foils = foilCount(cardlist, False, packName, packN, True, False)
+            superOk = gHolo or len(foils["Super Rare"]) == int(packN / superRate) + boxModSuper
+            ultraOk = len(foils["Ultra Rare"]) == int(packN / ultraRate) + boxModUltra
+            secretOk = len(foils["Secret Rare"]) == int(packN / secretRate) + boxModSecret
+    elif (reprint):
+        for i in range(0, packN):
+            packlist.append(reprintClean(openPack(hasSshort, ultraRate, superRate, secretRate, hasUltimate, hasSecret,
+                                 hasGhost, hasStarlight, sequence)))
+    else:
+        for i in range(0, packN):
+            packlist.append(openPack(hasSshort, ultraRate, superRate, secretRate, hasUltimate, hasSecret,
+                                     hasGhost, hasStarlight, sequence))
+    return packlist
+
+def reprintClean(pack):
+    temppack = pack
+    rarity = random.randint(0, 12)
+    if rarity == 0:
+        card = randCard(ultra)
+        if("Monster" in card["type"]):
+            temppack[5] = card
+        elif("Spell" in card["type"]):
+            temppack[8] = card
+        elif("Trap" in card["type"]):
+            temppack[11] = card
+    else:
+        rarity = random.randint(0, 6)
+        if rarity == 0:
+            card = randCard(super)
+            if ("Monster" in card["type"]):
+                temppack[5] = card
+            elif ("Spell" in card["type"]):
+                temppack[8] = card
+            elif ("Trap" in card["type"]):
+                temppack[11] = card
+
+            card = randCard(rare)
+            if ("Monster" in card["type"]):
+                temppack[4] = card
+            elif ("Spell" in card["type"]):
+                temppack[7] = card
+            elif ("Trap" in card["type"]):
+                temppack[10] = card
+        else:
+            card = randCard(rare)
+            if ("Monster" in card["type"]):
+                temppack[4] = card
+            elif ("Spell" in card["type"]):
+                temppack[7] = card
+            elif ("Trap" in card["type"]):
+                temppack[10] = card
+    return temppack
+
+def localSetup(data, packName):
     for card in data:
-        # print(card)
-        addFlag = 0
         for cardset in card["card_sets"]:
 
             importantInfo = {
                 "name": card["name"],
                 "id": card["id"],
-                "rarity": ""
+                "rarity": "",
+                "type": card["type"]
             }
 
             if (cardset["set_name"] == packName and cardset["set_rarity"] == "Common"):
@@ -169,176 +270,102 @@ def setup(packName, packN, boxRatio, cardlist):
                 importantInfo["rarity"] = "Starlight Rare"
                 starlight.append(importantInfo) if importantInfo not in ghost else None
 
-    if(printInfo):
-        print(common)
-        print(len(common))
-        print(short)
-        print(len(short))
-        print(sshort)
-        print(len(sshort))
-        print(rare)
-        print(len(rare))
-        print(super)
-        print(len(super))
-        print(ultra)
-        print(len(ultra))
-        print(secret)
-        print(len(secret))
-        print(ulti)
-        print(len(ulti))
-        print(ghost)
-        print(len(ghost))
-        print(starlight)
-        print(len(starlight))
-
-    if (boxRatio):
-
-        superOk = False
-        ultraOk = False
-        secretOk = False
-
-        boxModSuper = 0
-        boxModUltra = 0
-        boxModSecret = 0
-        superMod = random.randint(0, 10)
-        if(superMod == 0):
-            boxModSuper+=1
-        elif(superMod == 9):
-            boxModSuper-=1
-
-        ultraMod = random.randint(0, 10)
-        if (ultraMod == 0):
-            boxModUltra += 1
-        elif (ultraMod == 9):
-            boxModUltra -= 1
-
-        secretMod = random.randint(0, 10)
-        if (secretMod == 0):
-            boxModSecret += 1
-        elif (secretMod == 9):
-            boxModSecret -= 1
-
-        while (not superOk or not ultraOk or not secretOk):
-            cardlist = []
-            packlist = []
-            for i in range(0, packN):
-                packlist.append(openPack(packName, hasSshort, ultraRate, superRate, secretRate, hasUltimate, hasSecret,
-                                         hasGhost, hasRare, hasStarlight, gHolo, cNum, hasFoilLast))
-            for pack in packlist:
-                for card in pack:
-                    cardlist.append(card)
-            foils = foilCount(cardlist, False, packName, packN, True, False)
-            superOk = gHolo or len(foils["Super Rare"]) == int(packN / superRate) + boxModSuper
-            ultraOk = len(foils["Ultra Rare"]) == int(packN / ultraRate)  + boxModUltra
-            secretOk = len(foils["Secret Rare"]) == int(packN / secretRate)  + boxModSecret
-        return packlist
-    else:
-        for i in range(0, packN):
-            packlist.append(openPack(packName, hasSshort, ultraRate, superRate, secretRate, hasUltimate, hasSecret,
-                                     hasGhost, hasRare, hasStarlight, gHolo, cNum, hasFoilLast))
-        return packlist
-
-
-
-# Super Short prints seemingly discontinued after Legacy of Darkness
-# Soul of the Duelist and onwards changes:
-# Ultras are 1 in 24
-# Ultimata rares become a thing
-# No more secret rares
-# Strike of Neos: Secret Rares return
-# Tactical Evolution and onwards:
-# Ultras go back to 1 in 12
-# Ghost Rares become a thing
-# Supers become 1 in 5 instead of 6
-# The Shining Darkness: Secrets go to 1 in 23
-# Ultimate: 1 in 32 packs
-# Ghost: 1 in 288
-
-
-def openPack(packName, hasSshort, ultraRate, superRate, secretRate, hasUltimate, hasSecret, hasGhost, hasStarlight,
-             hasRare, gHolo, cNum, hasFoilLast):
-
+def openPack(hasSshort, ultraRate, superRate, secretRate, hasUltimate, hasSecret, hasGhost, hasStarlight,
+                 sequence):
     pack = []
+    for r in sequence:
+        if (r == "C"):
+            srarity = random.randint(0, 60)
+            if (hasSshort and len(sshort) != 0 and srarity == 1):
+                pack.append(randCard(sshort))
+            elif (len(short) != 0 and (srarity == 2 or srarity == 3)):
+                pack.append(randCard(short))
+            else:
+                pack.append(randCard(common))
+        elif (r == "R"):
+            pack.append(randCard(rare))
+        elif (r == "F" or r == "SF" or r == "RF"):
+            pulled = False
+            if hasStarlight and not pulled:
+                rarity = random.randint(0, 576)
+                if (rarity == 0):
+                    pack.append(randCard(starlight))
+                    pulled = True
 
-    for i in range(0, cNum-2):
-        srarity = random.randint(0, 60)
-        if (hasSshort and len(sshort) != 0 and srarity == 1):
-            pack.append(randCard(sshort))
-        elif (len(short) != 0 and (srarity == 2 or srarity == 3)):
-            pack.append(randCard(short))
-        else:
-            pack.append(randCard(common))
+            if hasGhost and not pulled:
+                rarity = random.randint(0, 288)
+                if (rarity == 0):
+                    pack.append(randCard(ghost))
+                    pulled = True
 
-    if(not hasRare):
-        srarity = random.randint(0, 30)
-        if(len(short) != 0 and srarity == 0):
-            pack.append(randCard(short))
-        else:
-            pack.append(randCard(common))
-    else:
-        pack.append(randCard(rare))
+            if hasUltimate and not pulled:
+                rarity = random.randint(0, 32)
+                if (rarity == 0):
+                    pack.append(randCard(ulti))
+                    pulled = True
 
-    if hasStarlight:
-        rarity = random.randint(0, 576)
-        if(rarity == 0):
-            pack.append(randCard(starlight))
-            return pack
+            if hasSecret and not pulled:
+                rarity = random.randint(0, secretRate)
+                if (rarity == 0):
+                    pack.append(randCard(secret))
+                    pulled = True
 
-    if hasGhost:
-        rarity = random.randint(0, 288)
-        if(rarity == 0):
-            pack.append(randCard(ghost))
-            return pack
-
-    if hasUltimate:
-        rarity = random.randint(0, 32)
-        if (rarity == 0):
-            pack.append(randCard(ulti))
-            return pack
-
-    if hasSecret:
-        rarity = random.randint(0, secretRate)
-        if(rarity == 0):
-            pack.append(randCard(secret))
-            return pack
-
+            rarity = random.randint(0, ultraRate)
+            if rarity == 0 and not pulled:
+                pack.append(randCard(ultra))
+                pulled = True
 
 
-    rarity = random.randint(0, ultraRate)
-    if(rarity == 0):
-        pack.append(randCard(ultra))
-        return pack
-
-    if gHolo:
-        pack.append(randCard(super))
-        return pack
-    else:
-        rarity = random.randint(0, superRate)
-        if(rarity == 0):
-            pack.append(randCard(super))
-            return pack
-        srarity = random.randint(0, 60)
-        if (len(sshort) != 0 and srarity == 1):
-            pack.append(randCard(sshort))
-        elif (len(short) != 0 and (srarity == 2 or srarity == 3)):
-            pack.append(randCard(short))
-        else:
-            pack.append(randCard(common))
+            if(not pulled):
+                if r == "SF":
+                    pack.append(randCard(super))
+                else:
+                    rarity = random.randint(0, superRate)
+                    if (rarity == 0):
+                        pack.append(randCard(super))
+                    else:
+                        if r == "RF":
+                            pack.append(randCard(rare))
+                        else:
+                            srarity = random.randint(0, 60)
+                            if (len(sshort) != 0 and srarity == 1):
+                                pack.append(randCard(sshort))
+                            elif (len(short) != 0 and (srarity == 2 or srarity == 3)):
+                                pack.append(randCard(short))
+                            else:
+                                pack.append(randCard(common))
 
 
+        elif r == "CM":
+            card = randCard(common)
+            while(not "Monster" in card["type"]):
+                card = randCard(common)
+            pack.append(card)
+        elif r == "CS":
+            card = randCard(common)
+            while(not "Spell" in card["type"]):
+                card = randCard(common)
+            pack.append(card)
+        elif r == "CT":
+            card = randCard(common)
+            while(not "Trap" in card["type"]):
+                card = randCard(common)
+            pack.append(card)
     return pack
+
 
 def foilPrint(list, rarityName):
     if (len(list) > 0):
         print("You pulled " + str(len(list)) + " " + rarityName + "(s): ")
         for card in list:
-            if(list[len(list) - 1] == card):
+            if (list[len(list) - 1] == card):
                 print(card["name"])
             else:
                 print(card["name"], end=", ")
 
+
 def foilCount(cardlist, sepFoils, packName, packNumber, boxRatio, printInfo):
-    if(printInfo):
+    if (printInfo):
         print("High Rarity cards pulled:")
     mySuper = []
     myUltra = []
@@ -366,12 +393,10 @@ def foilCount(cardlist, sepFoils, packName, packNumber, boxRatio, printInfo):
         elif (card["rarity"] == "Starlight Rare"):
             myStarlight.append(card)
 
-
-
-    if(sepFoils):
+    if (sepFoils):
         foilYdk(mySuper, myUltra, myUltimate, mySecret, myGhost, myStarlight, packName, packNumber)
 
-    if(printInfo):
+    if (printInfo):
         foilPrint(myShort, "Normal Rare")
         foilPrint(mySShort, "Super Short Print")
         foilPrint(mySuper, "Super Rare")
@@ -389,7 +414,8 @@ def foilCount(cardlist, sepFoils, packName, packNumber, boxRatio, printInfo):
         }
         return foils
 
-def foilYdk( mySuper, myUltra, myUltimate, mySecret, myGhost, myStarlight, packName, packNumber):
+
+def foilYdk(mySuper, myUltra, myUltimate, mySecret, myGhost, myStarlight, packName, packNumber):
     f = open(packName + str(packNumber) + "packsDraftFoils.ydk", "x")
     f.write("#Made with Iason PackOpener Foils Only File\n")
     f.write("#main\n")
@@ -406,29 +432,48 @@ def foilYdk( mySuper, myUltra, myUltimate, mySecret, myGhost, myStarlight, packN
     for card in mySuper:
         f.write(str(card["id"]) + "\n")
 
+def printInfoSetup():
+    print(common)
+    print(len(common))
+    print(short)
+    print(len(short))
+    print(sshort)
+    print(len(sshort))
+    print(rare)
+    print(len(rare))
+    print(super)
+    print(len(super))
+    print(ultra)
+    print(len(ultra))
+    print(secret)
+    print(len(secret))
+    print(ulti)
+    print(len(ulti))
+    print(ghost)
+    print(len(ghost))
+    print(starlight)
+    print(len(starlight))
+
 def main():
     packName = input("Which pack to open: ")
     print(packName)
     packNumber = input("How many packs: ")
     print(packNumber)
 
-
-
     write = False
     trim = True
     cardlist = []
     countFoils = True
     sepFoils = False
-    boxRatio = True
+    boxRatio = False
 
-    packName = "Rising Rampage"
+    packName = "Dark Revelation Volume 1"
     packNumber = 24
 
-
-    packlist = setup(packName, packNumber, boxRatio, cardlist)
+    packlist = setup(packName, packNumber, boxRatio)
 
     if write:
-        if(trim):
+        if (trim):
             f = open(packName + str(packNumber) + "packsDraftTrimmed.ydk", "x")
         else:
             f = open(packName + str(packNumber) + "packsDraft.ydk", "x")
@@ -441,14 +486,15 @@ def main():
             print(card)
             cardlist.append(card)
             if write:
-                if(trim):
-                    if(cardlist.count(card) < 3):
+                if (trim):
+                    if (cardlist.count(card) < 3):
                         f.write(str(card["id"]) + "\n")
                 else:
                     f.write(str(card["id"]) + "\n")
 
-    if(countFoils):
+    if (countFoils):
         foilCount(cardlist, sepFoils, packName, packNumber, False, True)
+
 
 if __name__ == '__main__':
     main()
