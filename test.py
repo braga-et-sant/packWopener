@@ -1,6 +1,11 @@
+import json
 import random
-
 import requests
+import os
+
+##To "Done" do: Save the set info locally after first prompt and extract from that instead of querying every time
+##To "Done" do: Make exception for when query is called with no internet/database down
+##Todo: Make the 1 button catch up feature
 
 common = []
 short = []
@@ -37,7 +42,49 @@ coreSets = ["Legend of Blue Eyes White Dragon", "Metal Raiders", "Spell Ruler", 
             ]
 
 reprintSets = ["Dark Beginning 1", "Dark Beginning 2", "Dark Revelation Volume 1",
-               "Dark Revelation Volume 2", "Dark Revelation Volume 3"]
+               "Dark Revelation Volume 2", "Dark Revelation Volume 3", "Dark Revelation Volume 4"]
+
+battleSets = ["Battle Pack: Epic Dawn", "Battle Pack 2: War of the Giants", "War of the Giants Reinforcements",
+"War of the Giants: Round 2", "Battle Pack 3: Monster League"]
+
+buildSets = ["The Secret Forces", "High-Speed Riders""Wing Raiders", "Destiny Soldiers", "Fusion Enforcers",
+             "Spirit Warriors", "Dark Saviors", "Hidden Summoners", "The Infinity Chasers", "Mystic Fighters",
+             "Secret Slayers", "Genesis Impact", "Ancient Guardians", "The Grand Creators"]
+
+collectionSets = [	"Number Hunters", "Dragons of Legend", "Dragons of Legend 2", "Dragons of Legend: Unleashed",
+                      "Battles of Legend: Light's Revenge", "Battles of Legend: Relentless Revenge",
+                      "Battles of Legend: Hero's Revenge", "Battles of Legend: Armageddon", "Brothers of Legend"]
+
+duelistSets = ["Duelist Pack Collection Tin 2008", "Duelist Pack Collection Tin 2009",
+               "Duelist Pack Collection Tin 2010", "Duelist Pack Collection Tin 2011",
+               "Duelist Pack Collection Tin: Jaden Yuki", "Duelist Pack: Aster Phoenix",
+               "Duelist Pack: Battle City", "Duelist Pack: Chazz Princeton",
+               "Duelist Pack: Crow", "Duelist Pack: Dimensional Guardians", "Duelist Pack: Jaden Yuki",
+               "Duelist Pack: Jaden Yuki 2", "Duelist Pack: Jaden Yuki 3", "Duelist Pack: Jesse Anderson",
+               "Duelist Pack: Kaiba", "Duelist Pack: Rivals of the Pharaoh", "Duelist Pack: Special Edition",
+               "Duelist Pack: Yugi", "Duelist Pack: Yusei", "Duelist Pack: Yusei 2", "Duelist Pack: Yusei 3",
+               "Duelist Pack: Zane Truesdale", "Legendary Duelists", "Legendary Duelists: Ancient Millennium",
+               "Legendary Duelists: Immortal Destiny", "Legendary Duelists: Magical Hero",
+               "Legendary Duelists: Rage of Ra", "Legendary Duelists: Season 1", "Legendary Duelists: Season 2",
+               "Legendary Duelists: Sisters of the Rose", "Legendary Duelists: White Dragon Abyss"
+ ]
+
+goldSets = ["Gold Series", "Gold Series 2009", "Gold Series 3", "Gold Series 4: Pyramids Edition",
+            "Gold Series: Haunted Mine"]
+
+hiddenArset = ["Hidden Arsenal", "Hidden Arsenal 2", "Hidden Arsenal 3", "Hidden Arsenal 4: Trishula's Triumph",
+               "Hidden Arsenal 5: Steelswarm Invasion", "Hidden Arsenal 5: Steelswarm Invasion: Special Edition",
+               "Hidden Arsenal 6: Omega Xyz", "Hidden Arsenal 7: Knight of Stars", "Hidden Arsenal: Special Edition",
+]
+
+collectorBoxSets = ["Duelist Saga", "Duel Power", "Duel Overload"]
+
+sixtySets = ["Pendulum Evolution", "Shadows in Valhalla", "Fists of the Gadgets", "Toon Chaos", "King's Court"]
+
+otherSets = ["Ghosts From the Past", "Millenium Pack", "World Superstars"]
+#uniques: Ghosts From the Past, Millenium Pack, World Superstars
+#demo decks: meh
+
 
 setupDone = False
 
@@ -60,24 +107,36 @@ def setup(packName, packN, boxRatio):
     hasStarlight = False
     packlist = []
     reprint = False
+    if (os.path.isdir('./packinfo') and os.path.isfile('./packinfo/' + packName.replace(" ", "") + '.json')):
+        print("Found deck json within files")
+    else:
+        print("Creating json for deck")
+        base_url = "https://db.ygoprodeck.com/api/v7/cardinfo.php"
+        site = "?cardset=" + packName
+        random.seed()
 
-    base_url = "https://db.ygoprodeck.com/api/v7/cardinfo.php"
-    site = "?cardset=" + packName
-    random.seed()
+        try:
+            first_response = requests.get(base_url + site, timeout=5)
+        except (requests.ConnectionError, requests.Timeout) as exception:
+            print("No internet connection and pack not in files. Aborting")
+        response_list = first_response.json()
 
-    first_response = requests.get(base_url + site)
-    response_list = first_response.json()
+        #print(first_response.json())
 
-    print(first_response.json())
+        if ("error" in response_list):
+            print("Invalid pack")
+            return
 
-    if ("error" in response_list):
-        print("Invalid pack")
-        return
+        with open('./packinfo/' + packName.replace(" ", "") + '.json', "w") as f:
+            json.dump(response_list, f)
 
-        # print(response_list )
-    print("\n\n")
+        print("\n\n")
 
-    data = response_list["data"]
+    jsonReady = None
+    with open('./packinfo/' + packName.replace(" ", "") + '.json', "r") as f:
+        jsonReady = json.load(f)
+        print(jsonReady)
+    data = jsonReady["data"]
     sequence = []
     if packName in coreSets:
         sequence = ["C", "C", "C", "C", "C", "C", "C", "R", "F"]
@@ -135,6 +194,8 @@ def setup(packName, packN, boxRatio):
     elif packName in reprintSets:
         sequence = ["CM", "CM", "CM", "CM", "CM", "CM", "CS", "CS", "CS", "CT", "CT", "CT"]
         reprint = True
+        ultraRate = 12
+        superRate = 6
     localSetup(data, packName)
 
     printInfoSetup()
@@ -171,22 +232,18 @@ def setup(packName, packN, boxRatio):
             packlist = []
             for i in range(0, packN):
                 packlist.append(openPack(hasSshort, ultraRate, superRate, secretRate, hasUltimate, hasSecret,
-                                         hasGhost, hasStarlight, sequence))
+                                         hasGhost, hasStarlight, sequence, reprint))
             for pack in packlist:
                 for card in pack:
                     cardlist.append(card)
             foils = foilCount(cardlist, False, packName, packN, True, False)
             superOk = gHolo or len(foils["Super Rare"]) == int(packN / superRate) + boxModSuper
             ultraOk = len(foils["Ultra Rare"]) == int(packN / ultraRate) + boxModUltra
-            secretOk = len(foils["Secret Rare"]) == int(packN / secretRate) + boxModSecret
-    elif (reprint):
-        for i in range(0, packN):
-            packlist.append(reprintClean(openPack(hasSshort, ultraRate, superRate, secretRate, hasUltimate, hasSecret,
-                                 hasGhost, hasStarlight, sequence)))
+            secretOk = len(foils["Secret Rare"])== 0 or len(foils["Secret Rare"]) == int(packN / secretRate) + boxModSecret
     else:
         for i in range(0, packN):
             packlist.append(openPack(hasSshort, ultraRate, superRate, secretRate, hasUltimate, hasSecret,
-                                     hasGhost, hasStarlight, sequence))
+                                     hasGhost, hasStarlight, sequence, reprint))
     return packlist
 
 def reprintClean(pack):
@@ -271,7 +328,7 @@ def localSetup(data, packName):
                 starlight.append(importantInfo) if importantInfo not in ghost else None
 
 def openPack(hasSshort, ultraRate, superRate, secretRate, hasUltimate, hasSecret, hasGhost, hasStarlight,
-                 sequence):
+                 sequence, reprint):
     pack = []
     for r in sequence:
         if (r == "C"):
@@ -351,6 +408,8 @@ def openPack(hasSshort, ultraRate, superRate, secretRate, hasUltimate, hasSecret
             while(not "Trap" in card["type"]):
                 card = randCard(common)
             pack.append(card)
+    if(reprint):
+        pack = reprintClean(pack)
     return pack
 
 
@@ -416,21 +475,21 @@ def foilCount(cardlist, sepFoils, packName, packNumber, boxRatio, printInfo):
 
 
 def foilYdk(mySuper, myUltra, myUltimate, mySecret, myGhost, myStarlight, packName, packNumber):
-    f = open(packName + str(packNumber) + "packsDraftFoils.ydk", "x")
-    f.write("#Made with Iason PackOpener Foils Only File\n")
-    f.write("#main\n")
-    for card in myStarlight:
-        f.write(str(card["id"]) + "\n")
-    for card in myGhost:
-        f.write(str(card["id"]) + "\n")
-    for card in mySecret:
-        f.write(str(card["id"]) + "\n")
-    for card in myUltimate:
-        f.write(str(card["id"]) + "\n")
-    for card in myUltra:
-        f.write(str(card["id"]) + "\n")
-    for card in mySuper:
-        f.write(str(card["id"]) + "\n")
+    with open(packName + str(packNumber) + "packsDraftFoils.ydk", "x") as f:
+        f.write("#Made with Iason PackOpener Foils Only File\n")
+        f.write("#main\n")
+        for card in myStarlight:
+            f.write(str(card["id"]) + "\n")
+        for card in myGhost:
+            f.write(str(card["id"]) + "\n")
+        for card in mySecret:
+            f.write(str(card["id"]) + "\n")
+        for card in myUltimate:
+            f.write(str(card["id"]) + "\n")
+        for card in myUltra:
+            f.write(str(card["id"]) + "\n")
+        for card in mySuper:
+            f.write(str(card["id"]) + "\n")
 
 def printInfoSetup():
     print(common)
@@ -465,9 +524,9 @@ def main():
     cardlist = []
     countFoils = True
     sepFoils = False
-    boxRatio = False
+    boxRatio = True
 
-    packName = "Dark Revelation Volume 1"
+    packName = "Stardust Overdrive"
     packNumber = 24
 
     packlist = setup(packName, packNumber, boxRatio)
@@ -495,6 +554,7 @@ def main():
     if (countFoils):
         foilCount(cardlist, sepFoils, packName, packNumber, False, True)
 
-
 if __name__ == '__main__':
     main()
+
+
