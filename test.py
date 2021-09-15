@@ -5,7 +5,10 @@ import os
 
 ##To "Done" do: Save the set info locally after first prompt and extract from that instead of querying every time
 ##To "Done" do: Make exception for when query is called with no internet/database down
-##Todo: Make the 1 button catch up feature
+##To "Done" do: Make the 1 button catch up feature
+##Todo: Weighted randomization somehow
+##Todo: Banlist file
+##Todo: Receive YDK file return banlist file option?
 
 common = []
 short = []
@@ -17,6 +20,7 @@ ulti = []
 secret = []
 ghost = []
 starlight = []
+goldrare = []
 coreSets = ["Legend of Blue Eyes White Dragon", "Metal Raiders", "Spell Ruler", "Pharaoh's Servant",
             "Labyrinth of Nightmare", "Legacy of Darkness", "Pharaonic Guardian", "Magician's Force",
             "Dark Crisis", "Invasion of Chaos", "Ancient Sanctuary", "Soul of the Duelist",
@@ -85,14 +89,29 @@ otherSets = ["Ghosts From the Past", "Millenium Pack", "World Superstars"]
 #uniques: Ghosts From the Past, Millenium Pack, World Superstars
 #demo decks: meh
 
+retropack = ["Retro Pack", "Retro Pack 2"]
+
+draftSets = ["Legend of Blue Eyes White Dragon", "Metal Raiders", "Spell Ruler", "Pharaoh's Servant",
+            "Labyrinth of Nightmare", "Legacy of Darkness", "Pharaonic Guardian", "Magician's Force",
+            "Dark Crisis", "Invasion of Chaos", "Ancient Sanctuary", "Soul of the Duelist",
+            "Rise of Destiny", "Flaming Eternity", "The Lost Millennium", "Cybernetic Revolution",
+            "Elemental Energy", "Shadow of Infinity", "Enemy of Justice", "Power of the Duelist",
+            "Cyberdark Impact", "Strike of Neos", "Force of the Breaker", "Tactical Evolution",
+            "Gladiator's Assault", "Phantom Darkness", "Light of Destruction", "The Duelist Genesis",
+            "Crossroads of Chaos", "Crimson Crisis", "Raging Battle", "Ancient Prophecy",
+            "Stardust Overdrive", "Dark Beginning 1", "Dark Beginning 2", "Dark Revelation Volume 1",
+            "Dark Revelation Volume 2", "Dark Revelation Volume 3", "Dark Revelation Volume 4",
+            "Hidden Arsenal", "Gold Series", "Dark Legends", "Retro Pack", "Gold Series 2009",
+            "Retro Pack 2"]
+
 
 setupDone = False
 
 printInfo = True
 
 
-def randCard(pack):
-    return pack[random.randint(-1, len(pack) - 1)]
+def randCard(rarity):
+    return rarity[random.randint(-1, len(rarity) - 1)]
 
 
 def setup(packName, packN, boxRatio):
@@ -135,7 +154,7 @@ def setup(packName, packN, boxRatio):
     jsonReady = None
     with open('./packinfo/' + packName.replace(" ", "") + '.json', "r") as f:
         jsonReady = json.load(f)
-        print(jsonReady)
+        #print(jsonReady)
     data = jsonReady["data"]
     sequence = []
     if packName in coreSets:
@@ -196,11 +215,26 @@ def setup(packName, packN, boxRatio):
         reprint = True
         ultraRate = 12
         superRate = 6
+    elif packName in hiddenArset:
+        sequence = ["SR", "SR", "SR", "SR", "SCR"]
+    elif packName in goldSets:
+        sequence = ["C", "C", "C", "C", "C","C", "C", "C", "C", "C","C", "C", "C", "C", "C","C", "C", "C", "C", "C",
+                    "C", "C", "GR", "GR", "GR"]
+    elif packName in retropack:
+        superRate = 5
+        ultraRate = 12
+        secretRate = 23
+        sequence = ["C", "C", "C", "C", "C", "C", "C", "R", "F"]
+    elif packName == "Dark Legends":
+        superRate = 5
+        ultraRate = 12
+        secretRate = 23
+        sequence = ["C", "C", "C", "C", "C", "C", "C", "R", "F", "C", "C", "C"]
     localSetup(data, packName)
 
     printInfoSetup()
 
-    if (boxRatio):
+    if (boxRatio and packName in coreSets):
 
         superOk = False
         ultraOk = False
@@ -299,22 +333,22 @@ def localSetup(data, packName):
             if (cardset["set_name"] == packName and cardset["set_rarity"] == "Common"):
                 importantInfo["rarity"] = "Common"
                 common.append(importantInfo) if importantInfo not in common else None
-            if (cardset["set_name"] == packName and cardset["set_rarity"] == "Short Print"):
+            elif (cardset["set_name"] == packName and cardset["set_rarity"] == "Short Print"):
                 importantInfo["rarity"] = "Short Print"
                 short.append(importantInfo) if importantInfo not in short else None
-            if (cardset["set_name"] == packName and cardset["set_rarity"] == "Super Short Print"):
+            elif (cardset["set_name"] == packName and cardset["set_rarity"] == "Super Short Print"):
                 importantInfo["rarity"] = "Super Short Print"
                 sshort.append(importantInfo) if importantInfo not in sshort else None
-            if (cardset["set_name"] == packName and cardset["set_rarity"] == "Rare"):
+            elif (cardset["set_name"] == packName and cardset["set_rarity"] == "Rare"):
                 importantInfo["rarity"] = "Rare"
                 rare.append(importantInfo) if importantInfo not in rare else None
-            if (cardset["set_name"] == packName and cardset["set_rarity"] == "Super Rare"):
+            elif (cardset["set_name"] == packName and cardset["set_rarity"] == "Super Rare"):
                 importantInfo["rarity"] = "Super Rare"
                 super.append(importantInfo) if importantInfo not in super else None
-            if (cardset["set_name"] == packName and cardset["set_rarity"] == "Ultra Rare"):
+            elif (cardset["set_name"] == packName and cardset["set_rarity"] == "Ultra Rare"):
                 importantInfo["rarity"] = "Ultra Rare"
                 ultra.append(importantInfo) if importantInfo not in ultra else None
-            if (cardset["set_name"] == packName and cardset["set_rarity"] == "Secret Rare"):
+            elif (cardset["set_name"] == packName and cardset["set_rarity"] == "Secret Rare"):
                 importantInfo["rarity"] = "Secret Rare"
                 secret.append(importantInfo) if importantInfo not in secret else None
             if (cardset["set_name"] == packName and cardset["set_rarity"] == "Ultimate Rare"):
@@ -325,7 +359,11 @@ def localSetup(data, packName):
                 ghost.append(importantInfo) if importantInfo not in ghost else None
             if (cardset["set_name"] == packName and cardset["set_rarity"] == "Starlight Rare"):
                 importantInfo["rarity"] = "Starlight Rare"
-                starlight.append(importantInfo) if importantInfo not in ghost else None
+                starlight.append(importantInfo) if importantInfo not in starlight else None
+
+            if (cardset["set_name"] == packName and cardset["set_rarity"] == "Gold Rare"):
+                importantInfo["rarity"] = "Gold Rare"
+                goldrare.append(importantInfo) if importantInfo not in goldrare else None
 
 def openPack(hasSshort, ultraRate, superRate, secretRate, hasUltimate, hasSecret, hasGhost, hasStarlight,
                  sequence, reprint):
@@ -408,6 +446,12 @@ def openPack(hasSshort, ultraRate, superRate, secretRate, hasUltimate, hasSecret
             while(not "Trap" in card["type"]):
                 card = randCard(common)
             pack.append(card)
+        elif r == "SR":
+            pack.append(randCard(super))
+        elif r == "SCR":
+            pack.append(randCard(secret))
+        elif r == "GR":
+            pack.append(randCard(goldrare))
     if(reprint):
         pack = reprintClean(pack)
     return pack
@@ -443,8 +487,6 @@ def foilCount(cardlist, sepFoils, packName, packNumber, boxRatio, printInfo):
             myUltra.append(card)
         elif (card["rarity"] == "Super Short Print"):
             mySShort.append(card)
-        elif (card["rarity"] == "Ultimate Rare"):
-            myUltimate.append(card)
         elif (card["rarity"] == "Secret Rare"):
             mySecret.append(card)
         elif (card["rarity"] == "Ghost Rare"):
@@ -475,21 +517,27 @@ def foilCount(cardlist, sepFoils, packName, packNumber, boxRatio, printInfo):
 
 
 def foilYdk(mySuper, myUltra, myUltimate, mySecret, myGhost, myStarlight, packName, packNumber):
-    with open(packName + str(packNumber) + "packsDraftFoils.ydk", "x") as f:
-        f.write("#Made with Iason PackOpener Foils Only File\n")
-        f.write("#main\n")
-        for card in myStarlight:
-            f.write(str(card["id"]) + "\n")
-        for card in myGhost:
-            f.write(str(card["id"]) + "\n")
-        for card in mySecret:
-            f.write(str(card["id"]) + "\n")
-        for card in myUltimate:
-            f.write(str(card["id"]) + "\n")
-        for card in myUltra:
-            f.write(str(card["id"]) + "\n")
-        for card in mySuper:
-            f.write(str(card["id"]) + "\n")
+    if os.path.isdir('./pulls'):
+        if os.path.isfile('./pulls/' + packName.replace(" ", "") + '_' + str(packNumber) + "packsDraftFoils.ydk"):
+            print("Foils file already found. Aborting")
+            return
+        with open('./pulls/' + packName.replace(" ", "") + '_' + str(packNumber) + "packsDraftFoils.ydk", "x") as f:
+            f.write("#Made with Iason PackOpener Foils Only File\n")
+            f.write("#main\n")
+            for card in myStarlight:
+                f.write(str(card["id"]) + "\n")
+            for card in myGhost:
+                f.write(str(card["id"]) + "\n")
+            for card in mySecret:
+                f.write(str(card["id"]) + "\n")
+            for card in myUltimate:
+                f.write(str(card["id"]) + "\n")
+            for card in myUltra:
+                f.write(str(card["id"]) + "\n")
+            for card in mySuper:
+                f.write(str(card["id"]) + "\n")
+            f.close()
+            return
 
 def printInfoSetup():
     print(common)
@@ -513,31 +561,42 @@ def printInfoSetup():
     print(starlight)
     print(len(starlight))
 
-def main():
-    packName = input("Which pack to open: ")
-    print(packName)
-    packNumber = input("How many packs: ")
-    print(packNumber)
+def main(toOpen, howmany, writeYdk, trimYdk, writeFoil, ratio):
 
-    write = False
-    trim = True
+    write = writeYdk
+    trim = trimYdk
     cardlist = []
     countFoils = True
-    sepFoils = False
-    boxRatio = True
+    sepFoils = writeFoil
+    boxRatio = ratio
+    print("HERE: " + toOpen)
 
     packName = "Stardust Overdrive"
     packNumber = 24
 
+    if(len(toOpen) != 0):
+        packName = toOpen
+    if(howmany != 0):
+        packNumber = howmany
+
+    if(not packName in coreSets):
+        sepFoils = False
+
     packlist = setup(packName, packNumber, boxRatio)
 
     if write:
-        if (trim):
-            f = open(packName + str(packNumber) + "packsDraftTrimmed.ydk", "x")
-        else:
-            f = open(packName + str(packNumber) + "packsDraft.ydk", "x")
-        f.write("#Made with IasonPackOpener\n")
-        f.write("#main\n")
+        if os.path.isdir('./pulls'):
+            if os.path.isfile('./pulls/' + packName.replace(" ", "") + '_' + str(packNumber) + "packsDraft.ydk") or \
+                    os.path.isfile('./pulls/' + packName.replace(" ", "") + '_' + str(packNumber) + "packsDraftTrimmed.ydk"):
+                print("Found deck pulls within files already. Aborting write")
+                write = False
+            else:
+                if (trim):
+                    f = open('./pulls/' + packName.replace(" ", "") + '_' + str(packNumber) + "packsDraftTrimmed.ydk", "x")
+                else:
+                    f = open('./pulls/' + packName.replace(" ", "") + '_' + str(packNumber) + "packsDraft.ydk", "x")
+                f.write("#Made with IasonPackOpener\n")
+                f.write("#main\n")
 
     for pack in packlist:
         print("Opening one pack of " + packName)
@@ -546,7 +605,7 @@ def main():
             cardlist.append(card)
             if write:
                 if (trim):
-                    if (cardlist.count(card) < 3):
+                    if (cardlist.count(card) < 4):
                         f.write(str(card["id"]) + "\n")
                 else:
                     f.write(str(card["id"]) + "\n")
@@ -554,7 +613,36 @@ def main():
     if (countFoils):
         foilCount(cardlist, sepFoils, packName, packNumber, False, True)
 
+    cleanup(packlist, cardlist)
+
+def cleanup(packlist, cardlist):
+    packlist = []
+    cardlist = []
+    print("Cleaning")
+    global common
+    common = []
+    global short
+    short = []
+    global sshort
+    sshort = []
+    global rare
+    rare = []
+    global super
+    super = []
+    global ultra
+    ultra = []
+    global ulti
+    ulti = []
+    global secret
+    secret = []
+    global ghost
+    ghost = []
+    global starlight
+    starlight = []
+    global goldrare
+    goldrare = []
+
 if __name__ == '__main__':
-    main()
+    main("Tactical Evolution", 0, False, False, False, False)
 
 
